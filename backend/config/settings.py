@@ -190,8 +190,11 @@ else:
     EMAIL_HOST_USER = email_config.get("EMAIL_HOST_USER", "")
     EMAIL_HOST_PASSWORD = email_config.get("EMAIL_HOST_PASSWORD", "")
     # `?ssl=true` → SMTP_SSL (порт 465, например Mail.ru); `?tls=true` → STARTTLS (порт 587).
-    EMAIL_USE_SSL = email_config.get("EMAIL_USE_SSL", False)
-    EMAIL_USE_TLS = email_config.get("EMAIL_USE_TLS", False)
+    # django-environ кладёт эти флаги в OPTIONS (с ключами в верхнем регистре), а не в
+    # EMAIL_USE_SSL/TLS, поэтому преобразуем их явно.
+    _email_options = {str(k).upper(): str(v).lower() for k, v in email_config.get("OPTIONS", {}).items()}
+    EMAIL_USE_SSL = bool(email_config.get("EMAIL_USE_SSL", False)) or _email_options.get("SSL") in {"1", "true", "yes"}
+    EMAIL_USE_TLS = bool(email_config.get("EMAIL_USE_TLS", False)) or _email_options.get("TLS") in {"1", "true", "yes"}
 
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="Lists App <no-reply@lists.app>")
 
