@@ -1,0 +1,55 @@
+# === Node / Expo ===
+node_modules/
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+*.tsbuildinfo
+
+# Native Android / iOS build output (generated)
+mobile/android/
+mobile/ios/
+*.jks
+*.keystore
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro / bundler
+.metro-health-check*
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# === Python / Django ===
+__pycache__/
+*.py[cod]
+*.sqlite3
+backend/db.sqlite3
+.venv/
+venv/
+staticfiles/
+media/
+.pytest_cache/
+.mypy_cache/
+celerybeat-schedule*
+
+# === Environment & secrets ===
+.env
+.env*.local
+backend/.env
+
+# === Local tooling ===
+.android-tools/
+.DS_Store
+*.pem
+
+# Локальные launchd-агенты конкретной машины (абсолютные пути)
+mobile/scripts/*.plist
+
+# macOS
+.DS_Store
+
+# Техническое задание (не относится к коду)
+tz.md
