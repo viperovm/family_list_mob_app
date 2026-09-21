@@ -7,6 +7,11 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "scheme": "familylists",
+    "extra": {
+      "eas": {
+        "projectId": "12da92bb-1d56-4cf5-8ffb-ed9561d173e6"
+      }
+    },
     "plugins": [
       [
         "expo-notifications",
@@ -28,6 +33,7 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
+      "googleServicesFile": "./google-services.json",
       "package": "com.familylists.app",
       "permissions": [
         "android.permission.READ_PHONE_STATE",

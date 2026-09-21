@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1008023259075",
+    "project_id": "family-lists-83196",
+    "storage_bucket": "family-lists-83196.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1008023259075:android:8958b6afb7b9fe92791f76",
+        "android_client_info": {
+          "package_name": "com.familylists.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCeKKtXvNRRKxyfKqjCdvm1Iixyv8zUJ1Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

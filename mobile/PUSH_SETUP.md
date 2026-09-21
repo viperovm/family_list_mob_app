@@ -55,7 +55,15 @@ EXPO_ACCESS_TOKEN=<токен из шага 1.4>
 - Бэкенд: `docker compose -f docker-compose.prod.yml logs --tail 50 celery-worker`.
 - Expo: **https://expo.dev/notifications** — тестовая отправка по токену.
 
-## Без регистрации (текущее состояние)
-Пока `extra.eas.projectId` и `google-services.json` не заданы,
-`registerForPushNotifications()` молча ничего не делает: приложение работает
-как обычно, push просто не приходят. Никаких падений.
+## Текущее состояние (настроено)
+
+Push уже настроены:
+
+- `extra.eas.projectId` в `mobile/app.json` = `12da92bb-1d56-4cf5-8ffb-ed9561d173e6`
+  (проект `@viperovms-team/family-shopping-lists`).
+- `mobile/google-services.json` (FCM-проект `family-lists-83196`, package
+  `com.familylists.app`) + `android.googleServicesFile` в `app.json`.
+- `EXPO_ACCESS_TOKEN` задан на бэкенде (`backend/.env`, сервер).
+
+Если `projectId` или `google-services.json` удалить, `registerForPushNotifications()`
+молча ничего не делает: приложение продолжает работать, push просто не приходят.
