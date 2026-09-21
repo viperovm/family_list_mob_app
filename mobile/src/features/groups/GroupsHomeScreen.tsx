@@ -79,6 +79,7 @@ export function GroupsHomeScreen() {
               </Card>
             )}
             refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
+            contentContainerStyle={styles.listContent}
           />
         )}
 
@@ -102,4 +103,5 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
   flex: { flex: 1 },
   create: { marginTop: spacing.md },
+  listContent: { paddingTop: spacing.sm, paddingBottom: spacing.xxxl },
 });

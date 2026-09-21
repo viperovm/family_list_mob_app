@@ -147,8 +147,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   cardTitle: { ...typography.titleMedium, flex: 1, marginRight: spacing.sm },
-  cardMeta: { ...typography.caption, marginBottom: spacing.md },
+  cardMeta: { ...typography.caption, marginBottom: spacing.lg },
   cardActions: { flexDirection: 'row', gap: spacing.sm },
   flexBtn: { flex: 1 },
-  openBtn: { height: 40, marginTop: spacing.xs },
+  openBtn: { marginTop: spacing.sm },
 });
