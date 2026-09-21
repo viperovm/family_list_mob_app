@@ -36,7 +36,7 @@ export function SettingsScreen() {
   if (isLoading) return <LoadingState />;
 
   return (
-    <Screen>
+    <Screen edges={['top']}>
       <ScreenContent>
         <Text style={[styles.title, { color: c.textPrimary }]}>{t('settings.title')}</Text>
 

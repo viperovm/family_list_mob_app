@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../../core/navigation/types';
@@ -8,10 +8,11 @@ import { Button } from '../../shared/ui/Button';
 import { Screen, ScreenContent } from '../../shared/ui/Screen';
 import { Input } from '../../shared/ui/Input';
 import { authApi } from '../../shared/api/auth';
-import { maskPhoneInput, normalizePhone, isValidPhone } from '../../shared/lib/phone';
+import { maskPhoneInput, normalizePhone, isValidPhone, formatPhoneForDisplay } from '../../shared/lib/phone';
 import { ApiError } from '../../shared/api/client';
 import { useAuthStore } from '../auth/store';
 import { deviceStorage } from '../../shared/storage/storage';
+import { getMyPhoneNumber } from '../../shared/lib/devicePhone';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Phone'>;
 
@@ -23,14 +24,23 @@ export function PhoneScreen({ navigation }: Props) {
 
   const [raw, setRaw] = useState('');
   const [loading, setLoading] = useState(false);
+  const [autofilling, setAutofilling] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const masked = maskPhoneInput(raw);
   const digits = masked.replace(/\D/g, '');
   const valid = isValidPhone(`+${digits}`);
 
-  const submit = async () => {
+  const submit = () => {
     const e164 = normalizePhone(`+${digits}`);
+    // Первый шаг регистрации по ТЗ: пользователь подтверждает введённый номер.
+    Alert.alert(t('auth.phone.confirmTitle'), formatPhoneForDisplay(e164), [
+      { text: t('auth.phone.edit'), style: 'cancel' },
+      { text: t('common.continue'), onPress: () => runSubmit(e164) },
+    ]);
+  };
+
+  const runSubmit = async (e164: string) => {
     setLoading(true);
     setError(null);
     try {
@@ -51,8 +61,28 @@ export function PhoneScreen({ navigation }: Props) {
     }
   };
 
+  const fillMyNumber = async () => {
+    setAutofilling(true);
+    setError(null);
+    try {
+      const number = await getMyPhoneNumber({
+        title: t('auth.phone.useMyNumberPermissionTitle'),
+        message: t('auth.phone.useMyNumberPermissionMessage'),
+        buttonPositive: t('common.allow'),
+        buttonNegative: t('common.cancel'),
+      });
+      if (number) {
+        setRaw(number);
+      } else {
+        setError(t('auth.phone.useMyNumberUnavailable'));
+      }
+    } finally {
+      setAutofilling(false);
+    }
+  };
+
   return (
-    <Screen>
+    <Screen edges={['top', 'bottom']}>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -73,7 +103,12 @@ export function PhoneScreen({ navigation }: Props) {
               style={styles.phoneInput}
             />
 
-            <Button title={t('auth.phone.useMyNumber')} variant="ghost" onPress={() => {}} />
+            <Button
+              title={t('auth.phone.useMyNumber')}
+              variant="ghost"
+              loading={autofilling}
+              onPress={fillMyNumber}
+            />
 
             {error ? <Text style={[styles.error, { color: c.danger }]}>{error}</Text> : null}
 

@@ -198,6 +198,10 @@ else:
 
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="Lists App <no-reply@lists.app>")
 
+# Push-уведомления через Expo Push API. Пустой токен = dev-режим (доставка логируется).
+EXPO_ACCESS_TOKEN = env("EXPO_ACCESS_TOKEN", default="")
+EXPO_PUSH_URL = env("EXPO_PUSH_URL", default="https://exp.host/--/api/v2/push/send")
+
 PHONE_LOGIN_ENABLED = env("PHONE_LOGIN_ENABLED")
 REQUIRE_EMAIL_CODE_FOR_NEW_DEVICE = env("REQUIRE_EMAIL_CODE_FOR_NEW_DEVICE")
 RU_PHONE_ONLY = env("RU_PHONE_ONLY")

@@ -27,6 +27,10 @@ export function formatPhoneForDisplay(e164: string): string {
 /**
  * Apply the visual mask for RU numbers while typing:
  * +7 (___) ___-__-__
+ *
+ * The closing parenthesis is added only once the 4th digit exists. This keeps
+ * backspace from re-inserting a trailing ")" (a "sticky" literal) when the user
+ * deletes digits inside the area code.
  */
 export function maskPhoneInput(raw: string): string {
   const digits = raw.replace(/\D/g, '');
@@ -36,10 +40,10 @@ export function maskPhoneInput(raw: string): string {
   }
   if (d.length > 10) d = d.slice(0, 10);
 
-  let out = '+7 ';
-  if (d.length > 0) out += `(${d.slice(0, 3)}`;
-  if (d.length >= 3) out += ')';
-  if (d.length > 3) out += ` ${d.slice(3, 6)}`;
+  if (d.length === 0) return '+7 ';
+
+  let out = `+7 (${d.slice(0, 3)}`;
+  if (d.length > 3) out += `) ${d.slice(3, 6)}`;
   if (d.length > 6) out += `-${d.slice(6, 8)}`;
   if (d.length > 8) out += `-${d.slice(8, 10)}`;
   return out;

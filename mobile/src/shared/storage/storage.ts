@@ -27,7 +27,7 @@ export const tokenStorage = {
 export type ThemeMode = 'light' | 'dark' | 'system';
 
 export const settingsStorage = {
-  getTheme: (): ThemeMode => (storage.getString(THEME_KEY) as ThemeMode) ?? 'system',
+  getTheme: (): ThemeMode => (storage.getString(THEME_KEY) as ThemeMode) ?? 'light',
   setTheme: (mode: ThemeMode) => storage.set(THEME_KEY, mode),
 };
 

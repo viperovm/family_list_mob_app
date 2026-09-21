@@ -12,6 +12,7 @@
 - UI/анимации: `react-native-reanimated`, `react-native-gesture-handler`, `react-native-svg`,
   `react-native-haptic-feedback`, `@shopify/flash-list`
 - Ввод кода: `react-native-confirmation-code-field`
+- Push: `expo-notifications` (Expo Push API + FCM — см. `PUSH_SETUP.md`)
 - Утилиты: `libphonenumber-js`, `date-fns`, `i18next` + `react-i18next`
 
 ## Структура
@@ -42,7 +43,15 @@ src/
 
 ## Подключение к backend
 
-Base URL берётся из `EXPO_PUBLIC_API_URL`, по умолчанию `http://10.0.2.2:8000/api/v1`
+Base URL берётся из `EXPO_PUBLIC_API_URL`; если переменная не задана, используется
+боевой сервер `https://listsapp.djangopirate.ru/api/v1` (см. `src/shared/api/client.ts`).
+
+Для локальной разработки на Android-эмуляторе раскомментируйте строку в `.envrc`:
+
+```bash
+export EXPO_PUBLIC_API_URL=http://10.0.2.2:8000/api/v1
+```
+
 (эмулятор Android достигает `localhost` хоста через `10.0.2.2`).
 
 Запустите backend в Docker из каталога `backend/` (`docker compose up -d`).
@@ -52,7 +61,7 @@ Base URL берётся из `EXPO_PUBLIC_API_URL`, по умолчанию `htt
 Требуются JDK 17 и Android SDK. Окружение описано в `.envrc`:
 
 ```bash
-source .envrc          # JAVA_HOME, ANDROID_HOME, PATH, EXPO_PUBLIC_API_URL
+source .envrc          # JAVA_HOME, ANDROID_HOME, PATH
 ```
 
 1. Запустить эмулятор:
@@ -61,18 +70,64 @@ source .envrc          # JAVA_HOME, ANDROID_HOME, PATH, EXPO_PUBLIC_API_URL
    ./scripts/start-emulator.sh
    ```
 
-2. Собрать и установить dev-сборку (сборка идёт через Gradle, только ABI `x86_64`
-   для эмулятора — см. `android/gradle.properties`):
+2. Собрать и установить dev-сборку. Для эмулятора можно оставить только ABI `x86_64`,
+   переопределив из CLI (`android/gradle.properties` по умолчанию собирает все ABI):
 
    ```bash
    npx expo run:android
    # или уже сгенерированный проект:
-   cd android && ./gradlew assembleDebug
+   cd android && ./gradlew assembleDebug -PreactNativeArchitectures=x86_64
    adb install -r app/build/outputs/apk/debug/app-debug.apk
    ```
 
 3. Метро (dev-сервер) запускается автоматически `expo run:android`.
    Если нужно отдельно: `npx expo start --dev-client`.
+
+## Сборка боевого APK (release)
+
+Собирается локально через Gradle, без EAS. Перед сборкой убедитесь, что переменная
+`EXPO_PUBLIC_API_URL` НЕ экспортирована (иначе в бандл попадёт dev-URL); по умолчанию
+используется `https://listsapp.djangopirate.ru/api/v1`.
+
+1. Сгенерировать keystore для боевой подписи (однократно, хранить в секрете):
+
+   ```bash
+   cd android
+   keytool -genkeypair -v \
+     -storetype PKCS12 \
+     -keyalg RSA -keysize 2048 -validity 10000 \
+     -keystore app/release.keystore \
+     -alias listsapp \
+     -storepass CHANGE_ME_STORE_PASS \
+     -keypass CHANGE_ME_KEY_PASS \
+     -dname "CN=FamilyLists, OU=Mobile, O=FamilyLists, L=City, S=State, C=RU"
+   ```
+
+2. Создать `android/keystore.properties` (файл в `.gitignore`, не коммитится):
+
+   ```properties
+   storeFile=app/release.keystore
+   storePassword=CHANGE_ME_STORE_PASS
+   keyAlias=listsapp
+   keyPassword=CHANGE_ME_KEY_PASS
+   ```
+
+   Если `keystore.properties` отсутствует, release-сборка падает не будет, а подпишется
+   debug-ключом (для локального теста).
+
+3. Собрать APK под все ABI:
+
+   ```bash
+   cd android
+   ./gradlew assembleRelease
+   ```
+
+   Результат: `android/app/build/outputs/apk/release/app-release.apk`
+   (универсальный APK, если включён `enableSeparateBuildPerCPUArchitecture=false`).
+
+> Примечание: каталог `android/` генерируется (`npx expo prebuild`) и НЕ хранится в git.
+> После перегенерации заново задайте ABI в `android/gradle.properties` и подпись в
+> `android/app/build.gradle` (см. выше).
 
 ## Скрипты
 
@@ -94,13 +149,19 @@ source .envrc          # JAVA_HOME, ANDROID_HOME, PATH, EXPO_PUBLIC_API_URL
   активных сверху, закрытых снизу.
 - Настройки: профиль (телефон/почта), смена номера через email-код, тема (светлая/тёмная/
   системная), выход.
-- Тёмная тема, состояния загрузки/пустоты/ошибки, локализация (ru), оптимистичные
-  обновления через React Query.
+- Светлая тема по умолчанию (плюс тёмная и системная), современный глассморфизм
+  (полупрозрачные карточки, градиентные кнопки и фон, safe-area отступы из-за edge-to-edge),
+  состояния загрузки/пустоты/ошибки, локализация (ru), оптимистичные обновления через
+  React Query.
+- Иконки приложения генерируются скриптами `scripts/generate_icons.py` (assets/) и
+  `scripts/generate_android_res.py` (android/res/).
 
 ## Ограничения (dev-демо)
 
-- Push (FCM) и чтение контактов не подключены: нет `google-services.json` и реальной книги
-  контактов на эмуляторе. Приглашение выполняется вводом номера вручную.
+- Push-уведомления: код готов (`expo-notifications` + Expo Push, см. `PUSH_SETUP.md`),
+  но для реальной доставки нужны регистрация на Expo и Firebase (`google-services.json`,
+  Project ID) и токен `EXPO_ACCESS_TOKEN` на бэкенде. Чтение контактов не подключено —
+  приглашение выполняется вводом номера вручную.
 - Автоподстановка номера через SIM недоступна на эмуляторе.
-- Билд собран только под `x86_64` (эмулятор). Для устройств верните все ABI в
-  `android/gradle.properties` (`reactNativeArchitectures=armeabi-v7a,arm64-v8a,x86,x86_64`).
+- Билд собран под все ABI (`armeabi-v7a,arm64-v8a,x86,x86_64`). Для эмулятора можно
+  ограничить до `x86_64`, переопределив из CLI (`-PreactNativeArchitectures=x86_64`).

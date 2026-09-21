@@ -119,8 +119,14 @@ export interface ChangePhoneStartResponse {
   code_ttl_seconds: number;
 }
 
+export interface ApiErrorEnvelope {
+  code?: string;
+  message?: string;
+  fields?: Record<string, string[]>;
+}
+
 export interface ApiErrorBody {
-  error?: string;
+  error?: string | ApiErrorEnvelope;
   message?: string;
   fields?: Record<string, string[]>;
   detail?: string;

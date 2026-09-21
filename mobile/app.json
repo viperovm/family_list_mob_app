@@ -7,6 +7,16 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "scheme": "familylists",
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/android-icon-monochrome.png",
+          "color": "#2563EB",
+          "defaultChannel": "default"
+        }
+      ]
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.familylists.app"
@@ -19,6 +29,10 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "package": "com.familylists.app",
+      "permissions": [
+        "android.permission.READ_PHONE_STATE",
+        "android.permission.POST_NOTIFICATIONS"
+      ],
       "predictiveBackGestureEnabled": false
     },
     "web": {

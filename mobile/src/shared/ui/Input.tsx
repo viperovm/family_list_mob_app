@@ -29,7 +29,7 @@ export const Input = React.forwardRef<TextInput, InputProps>(
           style={[
             styles.input,
             {
-              backgroundColor: c.surface,
+              backgroundColor: c.glass,
               borderColor: error ? c.danger : c.border,
               color: c.textPrimary,
             },

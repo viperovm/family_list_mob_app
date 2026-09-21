@@ -159,7 +159,7 @@ export function ListDetailScreen({ route, navigation }: Props) {
     : [];
 
 return (
-    <Screen>
+    <Screen edges={['top']}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={[styles.header, { backgroundColor: c.surface }]}>
           <Pressable onPress={() => navigation.goBack()} style={styles.headerBtn} hitSlop={12}>

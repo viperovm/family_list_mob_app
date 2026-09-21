@@ -22,7 +22,7 @@ export function SegmentedControl<T extends string>({
   const c = theme.colors;
 
   return (
-    <View style={[styles.container, { backgroundColor: c.surfaceSecondary }]}>
+    <View style={[styles.container, { backgroundColor: c.glass, borderColor: c.glassBorder }]}>
       {options.map((opt) => {
         const active = opt.value === value;
         return (
@@ -52,6 +52,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: spacing.xs,
     alignSelf: 'stretch',
+    borderWidth: StyleSheet.hairlineWidth,
   },
   segment: {
     flex: 1,

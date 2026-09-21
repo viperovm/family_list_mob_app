@@ -1,4 +1,5 @@
 import React from 'react';
+import { StatusBar } from 'expo-status-bar';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { NavigationContainer, DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -33,6 +34,7 @@ function ThemedNavigation() {
         },
       }}
     >
+      <StatusBar style={theme.dark ? 'light' : 'dark'} />
       <RootNavigator />
     </NavigationContainer>
   );

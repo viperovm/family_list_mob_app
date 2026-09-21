@@ -13,10 +13,16 @@ expo-env.d.ts
 .kotlin/
 *.orig.*
 *.jks
+*.keystore
 *.p8
 *.p12
 *.key
 *.mobileprovision
+
+# Keystore credentials (release signing) — never commit
+android/keystore.properties
+android/app/*.keystore
+android/app/*.jks
 
 # Metro
 .metro-health-check*
@@ -39,3 +45,8 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# local Expo modules (build output)
+modules/*/android/build/
+modules/*/ios/build/
+modules/*/build/

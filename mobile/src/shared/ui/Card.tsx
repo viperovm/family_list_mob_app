@@ -11,9 +11,9 @@ export function Card({ children, style, ...rest }: ViewProps) {
       style={[
         styles.card,
         {
-          backgroundColor: c.surface,
-          borderColor: c.border,
-          shadowColor: theme.dark ? '#000' : '#111827',
+          backgroundColor: c.glass,
+          borderColor: c.glassBorder,
+          shadowColor: theme.dark ? '#000' : '#1E293B',
         },
         style,
       ]}
@@ -27,11 +27,11 @@ export function Card({ children, style, ...rest }: ViewProps) {
 const styles = StyleSheet.create({
   card: {
     borderRadius: radius.card,
-    borderWidth: StyleSheet.hairlineWidth * 2,
+    borderWidth: StyleSheet.hairlineWidth,
     padding: spacing.lg,
-    shadowOpacity: 0.04,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 1,
+    shadowOpacity: 0.06,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 2,
   },
 });

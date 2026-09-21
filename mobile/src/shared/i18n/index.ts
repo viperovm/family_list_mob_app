@@ -4,6 +4,7 @@ import { initReactI18next } from 'react-i18next';
 export const ru = {
   common: {
     continue: 'Продолжить',
+    allow: 'Разрешить',
     cancel: 'Отмена',
     create: 'Создать',
     save: 'Сохранить',
@@ -18,6 +19,10 @@ export const ru = {
       subtitle: 'Мы отправим код для входа или регистрации',
       placeholder: '+7 (___) ___-__-__',
       useMyNumber: 'Подставить мой номер',
+      useMyNumberUnavailable: 'Не удалось определить номер. Введите его вручную.',
+      useMyNumberPermissionTitle: 'Номер телефона',
+      useMyNumberPermissionMessage:
+        'Разрешите доступ к данным телефона, чтобы подставить ваш номер.',
       confirmTitle: 'Проверьте номер',
       edit: 'Править',
     },

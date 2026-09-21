@@ -2,10 +2,11 @@ import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios';
 import { ApiErrorBody } from '../lib/types';
 import { tokenStorage } from '../storage/storage';
 
-// Base URL: Android emulator reaches host machine via 10.0.2.2.
-// Override via EXPO_PUBLIC_API_URL for other environments.
-const DEFAULT_BASE_URL = 'http://10.0.2.2:8000/api/v1';
-export const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? DEFAULT_BASE_URL;
+// Base URL боевого сервера (production). Для локальной разработки
+// переопределите через переменную окружения EXPO_PUBLIC_API_URL, например:
+//   EXPO_PUBLIC_API_URL=http://10.0.2.2:8000/api/v1  (Android-эмулятор → хост)
+const PRODUCTION_BASE_URL = 'https://listsapp.djangopirate.ru/api/v1';
+export const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? PRODUCTION_BASE_URL;
 
 export class ApiError extends Error {
   code?: string;
@@ -18,6 +19,27 @@ export class ApiError extends Error {
     this.fields = fields;
     this.status = status;
   }
+}
+
+function parseApiErrorBody(body: ApiErrorBody): {
+  message: string;
+  code?: string;
+  fields?: Record<string, string[]>;
+} {
+  const nested =
+    typeof body.error === 'object' && body.error !== null ? body.error : null;
+
+  const message =
+    nested?.message ??
+    body.message ??
+    body.detail ??
+    (typeof body.error === 'string' ? body.error : undefined) ??
+    'Произошла ошибка. Попробуйте ещё раз.';
+
+  const code = nested?.code ?? (typeof body.error === 'string' ? body.error : undefined);
+  const fields = nested?.fields ?? body.fields;
+
+  return { message, code, fields };
 }
 
 let refreshPromise: Promise<string> | null = null;
@@ -78,9 +100,8 @@ api.interceptors.response.use(
 
     const body = error?.response?.data as ApiErrorBody | undefined;
     if (body) {
-      const message =
-        body.message ?? body.detail ?? body.error ?? 'Произошла ошибка. Попробуйте ещё раз.';
-      return Promise.reject(new ApiError(message, body.error, body.fields, status));
+      const { message, code, fields } = parseApiErrorBody(body);
+      return Promise.reject(new ApiError(message, code, fields, status));
     }
     return Promise.reject(new ApiError('Сетевая ошибка. Проверьте подключение.', undefined, undefined, status));
   },

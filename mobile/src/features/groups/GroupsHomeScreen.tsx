@@ -29,7 +29,7 @@ export function GroupsHomeScreen() {
   if (isError) return <ErrorState onRetry={() => refetch()} />;
 
   return (
-    <Screen>
+    <Screen edges={['top']}>
       <ScreenContent>
         <Text style={[styles.title, { color: c.textPrimary }]}>{t('groups.title')}</Text>
 

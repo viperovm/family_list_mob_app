@@ -7,6 +7,7 @@ import {
   Text,
   ViewStyle,
 } from 'react-native';
+import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { useTheme, radius, spacing, typography } from '../design-system';
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
@@ -54,13 +55,24 @@ export function Button({
       style={({ pressed }) => [
         styles.base,
         { backgroundColor: backgrounds[variant] },
-        variant === 'primary' && pressed && { backgroundColor: c.primaryPressed },
+        variant === 'primary' && pressed && !isDisabled && styles.pressed,
         fullWidth && styles.fullWidth,
         isDisabled && styles.disabled,
         style,
       ]}
       {...rest}
     >
+      {variant === 'primary' && !isDisabled ? (
+        <Svg style={StyleSheet.absoluteFill} pointerEvents="none">
+          <Defs>
+            <LinearGradient id="btnPrimary" x1="0%" y1="0%" x2="100%" y2="100%">
+              <Stop offset="0" stopColor={c.gradientStart} />
+              <Stop offset="1" stopColor={c.gradientEnd} />
+            </LinearGradient>
+          </Defs>
+          <Rect x="0" y="0" width="100%" height="100%" rx={radius.button} fill="url(#btnPrimary)" />
+        </Svg>
+      ) : null}
       {loading ? (
         <ActivityIndicator color={textColors[variant]} />
       ) : (
@@ -77,8 +89,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: spacing.lg,
+    overflow: 'hidden',
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 2,
   },
   fullWidth: { alignSelf: 'stretch' },
   disabled: { opacity: 0.5 },
+  pressed: { opacity: 0.9 },
   text: { ...typography.button },
 });

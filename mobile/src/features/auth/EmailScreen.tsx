@@ -47,7 +47,7 @@ export function EmailScreen({ navigation }: Props) {
   };
 
   return (
-    <Screen>
+    <Screen edges={['top', 'bottom']}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}

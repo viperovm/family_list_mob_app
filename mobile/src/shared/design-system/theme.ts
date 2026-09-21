@@ -2,6 +2,8 @@ export interface ColorScheme {
   background: string;
   surface: string;
   surfaceSecondary: string;
+  glass: string;
+  glassBorder: string;
   textPrimary: string;
   textSecondary: string;
   primary: string;
@@ -14,14 +16,18 @@ export interface ColorScheme {
   warning: string;
   border: string;
   overlay: string;
+  gradientStart: string;
+  gradientEnd: string;
 }
 
 export const lightColors: ColorScheme = {
-  background: '#F6F7FB',
+  background: '#EEF2FB',
   surface: '#FFFFFF',
-  surfaceSecondary: '#F1F3F9',
-  textPrimary: '#111827',
-  textSecondary: '#6B7280',
+  surfaceSecondary: '#F2F5FC',
+  glass: 'rgba(255, 255, 255, 0.78)',
+  glassBorder: 'rgba(255, 255, 255, 0.85)',
+  textPrimary: '#0F172A',
+  textSecondary: '#64748B',
   primary: '#2563EB',
   primaryPressed: '#1D4ED8',
   primarySoft: '#DBEAFE',
@@ -30,14 +36,18 @@ export const lightColors: ColorScheme = {
   danger: '#DC2626',
   dangerSoft: '#FEE2E2',
   warning: '#D97706',
-  border: '#E5E7EB',
-  overlay: 'rgba(17, 24, 39, 0.4)',
+  border: '#E5EAF3',
+  overlay: 'rgba(15, 23, 42, 0.4)',
+  gradientStart: '#3B82F6',
+  gradientEnd: '#22D3EE',
 };
 
 export const darkColors: ColorScheme = {
   background: '#0B1220',
   surface: '#111827',
   surfaceSecondary: '#182338',
+  glass: 'rgba(17, 24, 39, 0.72)',
+  glassBorder: 'rgba(255, 255, 255, 0.08)',
   textPrimary: '#F9FAFB',
   textSecondary: '#9CA3AF',
   primary: '#3B82F6',
@@ -50,6 +60,8 @@ export const darkColors: ColorScheme = {
   warning: '#F59E0B',
   border: '#263043',
   overlay: 'rgba(0, 0, 0, 0.55)',
+  gradientStart: '#3B82F6',
+  gradientEnd: '#22D3EE',
 };
 
 export const spacing = {
@@ -64,9 +76,9 @@ export const spacing = {
 } as const;
 
 export const radius = {
-  input: 14,
-  button: 16,
-  card: 20,
+  input: 16,
+  button: 18,
+  card: 24,
   bottomSheet: 28,
   dialog: 24,
   chip: 999,

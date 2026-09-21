@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react';
-import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 import 'react-native-gesture-handler';
 import './src/shared/i18n';
 import { App } from './src/core/providers/AppProviders';
 import { useAuthStore } from './src/features/auth/store';
 import { authApi } from './src/shared/api/auth';
+import { registerForPushNotifications } from './src/shared/lib/pushNotifications';
 
 function Root() {
   const hydrate = useAuthStore((s) => s.hydrate);
@@ -24,15 +24,11 @@ function Root() {
         .me()
         .then(setUser)
         .catch(() => logout());
+      void registerForPushNotifications();
     }
   }, [isHydrated, isAuthenticated]);
 
-  return (
-    <>
-      <StatusBar style="auto" />
-      <App />
-    </>
-  );
+  return <App />;
 }
 
 export default Root;
