@@ -9,6 +9,7 @@ expo-env.d.ts
 # Native Android / iOS build output (generated)
 mobile/android/
 mobile/ios/
+app-release.apk
 *.jks
 *.keystore
 *.p8
