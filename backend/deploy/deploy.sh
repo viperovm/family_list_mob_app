@@ -31,6 +31,9 @@ fi
 echo "==> Применяем миграции"
 ./.venv/bin/python manage.py migrate --noinput
 
+echo "==> Чиним права на staticfiles/media (root-файлы могли остаться от Docker)"
+sudo chown -R "$(id -u):$(id -g)" "$APP_DIR/staticfiles" "$APP_DIR/media" 2>/dev/null || true
+
 echo "==> Собираем статику"
 ./.venv/bin/python manage.py collectstatic --noinput
 

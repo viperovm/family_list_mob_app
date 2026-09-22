@@ -207,6 +207,19 @@ cd ~/family_list_mob_app/backend
 ./.venv/bin/python manage.py createsuperuser
 ```
 
+> Если `collectstatic` падает с `PermissionError: ... staticfiles/...`, значит каталоги
+> `staticfiles/` и `media/` были созданы старым Docker-контейнером от имени **root**.
+> Разово исправьте владельца:
+>
+> ```bash
+> sudo chown -R "$USER":"$USER" ~/family_list_mob_app/backend/staticfiles ~/family_list_mob_app/backend/media
+> ```
+>
+> Скрипт `deploy.sh` делает эту правку автоматически перед сборкой статики.
+> Nginx (пользователь `www-data`) тоже должен иметь доступ на чтение к этим каталогам —
+> при необходимости `sudo chmod -R o+rx ~/family_list_mob_app/backend/staticfiles ~/family_list_mob_app/backend/media`.
+
+
 ### 3.8. Nginx
 
 Положить конфиг и включить сайт:
