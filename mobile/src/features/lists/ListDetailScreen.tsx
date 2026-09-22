@@ -19,6 +19,9 @@ import { Screen } from '../../shared/ui/Screen';
 import { Badge } from '../../shared/ui/Badge';
 import { LoadingState } from '../../shared/ui/LoadingState';
 import { ErrorState } from '../../shared/ui/ErrorState';
+import { Button } from '../../shared/ui/Button';
+import { Input } from '../../shared/ui/Input';
+import { ApiError } from '../../shared/api/client';
 import {
   useListDetail,
   useAddItem,
@@ -97,6 +100,9 @@ export function ListDetailScreen({ route, navigation }: Props) {
   const [text, setText] = useState('');
   const [selectedItem, setSelectedItem] = useState<ListItem | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [renameOpen, setRenameOpen] = useState(false);
+  const [renameValue, setRenameValue] = useState('');
+  const [renameError, setRenameError] = useState<string | null>(null);
 
   if (isLoading) return <LoadingState />;
   if (isError || !list) return <ErrorState onRetry={() => refetch()} />;
@@ -133,10 +139,24 @@ export function ListDetailScreen({ route, navigation }: Props) {
     }
   };
 
-  const confirmRename = () => {
-    Alert.prompt(t('lists.rename'), undefined, (name) => {
-      if (name?.trim()) rename.mutate({ id: listId, name: name.trim() });
-    });
+  const openRename = () => {
+    setMenuOpen(false);
+    setRenameValue(list.name);
+    setRenameError(null);
+    setRenameOpen(true);
+  };
+
+  const submitRename = async () => {
+    const value = renameValue.trim();
+    if (!value) return;
+    setRenameError(null);
+    try {
+      await rename.mutateAsync({ id: listId, name: value });
+      setRenameOpen(false);
+    } catch (e) {
+      if (e instanceof ApiError) setRenameError(e.message);
+      else setRenameError(t('common.error'));
+    }
   };
 
   const itemActions = selectedItem
@@ -219,7 +239,7 @@ return (
         <Pressable style={styles.overlay} onPress={() => setMenuOpen(false)}>
           <View style={[styles.menu, { backgroundColor: c.surface }]}>
             {list.permissions.rename && (
-              <Pressable style={styles.menuItem} onPress={confirmRename}>
+              <Pressable style={styles.menuItem} onPress={openRename}>
                 <Text style={[styles.menuText, { color: c.textPrimary }]}>{t('lists.rename')}</Text>
               </Pressable>
             )}
@@ -236,6 +256,39 @@ return (
               <Text style={[styles.menuText, { color: c.textPrimary }]}>{t('lists.duplicate')}</Text>
             </Pressable>
           </View>
+        </Pressable>
+      </Modal>
+
+      <Modal visible={renameOpen} transparent animationType="fade" onRequestClose={() => setRenameOpen(false)}>
+        <Pressable style={styles.dialogOverlay} onPress={() => setRenameOpen(false)}>
+          <Pressable style={[styles.dialog, { backgroundColor: c.surface }]} onPress={() => {}}>
+            <Text style={[styles.dialogTitle, { color: c.textPrimary }]}>{t('lists.rename')}</Text>
+            <Input
+              value={renameValue}
+              onChangeText={setRenameValue}
+              placeholder={t('lists.namePlaceholder')}
+              autoFocus
+              selectTextOnFocus
+              onSubmitEditing={submitRename}
+              returnKeyType="done"
+              error={renameError ?? undefined}
+            />
+            <View style={styles.dialogActions}>
+              <Button
+                title={t('common.cancel')}
+                variant="secondary"
+                onPress={() => setRenameOpen(false)}
+                style={styles.dialogBtn}
+              />
+              <Button
+                title={t('common.save')}
+                onPress={submitRename}
+                loading={rename.isPending}
+                disabled={!renameValue.trim()}
+                style={styles.dialogBtn}
+              />
+            </View>
+          </Pressable>
         </Pressable>
       </Modal>
 
@@ -324,4 +377,17 @@ const styles = StyleSheet.create({
   sheetTitle: { ...typography.titleMedium, marginBottom: spacing.md },
   menuItem: { paddingVertical: spacing.lg },
   menuText: { ...typography.bodyLarge },
+  dialogOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    padding: spacing.xl,
+  },
+  dialog: {
+    borderRadius: radius.dialog,
+    padding: spacing.xl,
+  },
+  dialogTitle: { ...typography.titleMedium, marginBottom: spacing.lg },
+  dialogActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
+  dialogBtn: { flex: 1 },
 });

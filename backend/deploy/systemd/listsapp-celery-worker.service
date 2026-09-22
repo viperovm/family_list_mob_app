@@ -1,0 +1,28 @@
+# ListsApp — Celery worker (фоновые задачи).
+#
+# Установка:
+#   sudo cp backend/deploy/systemd/listsapp-celery-worker.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now listsapp-celery-worker
+#
+# ПРИМЕЧАНИЕ: подставьте свой реальный путь к backend/ и имя пользователя.
+
+[Unit]
+Description=ListsApp Celery worker
+After=network.target redis-server.service postgresql.service
+Wants=redis-server.service postgresql.service
+
+[Service]
+Type=simple
+User=viperovm
+Group=viperovm
+WorkingDirectory=/home/viperovm/family_list_mob_app/backend
+EnvironmentFile=/home/viperovm/family_list_mob_app/backend/.env
+ExecStart=/home/viperovm/family_list_mob_app/backend/.venv/bin/celery -A config worker -l info --concurrency=2
+Restart=always
+RestartSec=5
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

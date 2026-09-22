@@ -93,6 +93,9 @@ export function useRenameList() {
   return useMutation({
     mutationFn: (input: { id: string; name: string }) =>
       listsApi.rename(input.id, input.name),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.lists }),
+    onSuccess: (_, variables) => {
+      qc.invalidateQueries({ queryKey: queryKeys.lists });
+      qc.invalidateQueries({ queryKey: queryKeys.list(variables.id) });
+    },
   });
 }

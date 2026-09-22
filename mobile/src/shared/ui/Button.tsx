@@ -34,6 +34,8 @@ export function Button({
   const c = theme.colors;
 
   const isDisabled = disabled || loading;
+  const isSolid = variant === 'primary' || variant === 'danger';
+  const isOutlined = variant === 'secondary' || variant === 'ghost';
 
   const backgrounds: Record<Variant, string> = {
     primary: c.primary,
@@ -55,6 +57,8 @@ export function Button({
       style={({ pressed }) => [
         styles.base,
         { backgroundColor: backgrounds[variant] },
+        isOutlined && { borderWidth: 1, borderColor: c.border },
+        isSolid && styles.elevated,
         variant === 'primary' && pressed && !isDisabled && styles.pressed,
         fullWidth && styles.fullWidth,
         isDisabled && styles.disabled,
@@ -89,6 +93,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: spacing.lg,
+  },
+  elevated: {
     shadowColor: '#000',
     shadowOpacity: 0.08,
     shadowRadius: 4,

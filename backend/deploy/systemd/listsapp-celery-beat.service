@@ -1,0 +1,30 @@
+# ListsApp — Celery beat (периодические задачи: очистка кодов, сессий, токенов).
+#
+# Установка:
+#   sudo cp backend/deploy/systemd/listsapp-celery-beat.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now listsapp-celery-beat
+#
+# ВАЖНО: beat должен запускаться в ЕДИНСТВЕННОМ экземпляре.
+#
+# ПРИМЕЧАНИЕ: подставьте свой реальный путь к backend/ и имя пользователя.
+
+[Unit]
+Description=ListsApp Celery beat
+After=network.target redis-server.service postgresql.service
+Wants=redis-server.service postgresql.service
+
+[Service]
+Type=simple
+User=viperovm
+Group=viperovm
+WorkingDirectory=/home/viperovm/family_list_mob_app/backend
+EnvironmentFile=/home/viperovm/family_list_mob_app/backend/.env
+ExecStart=/home/viperovm/family_list_mob_app/backend/.venv/bin/celery -A config beat -l info --schedule /home/viperovm/family_list_mob_app/backend/celerybeat-schedule
+Restart=always
+RestartSec=5
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

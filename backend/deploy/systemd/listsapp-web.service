@@ -1,0 +1,34 @@
+# ListsApp — Django/Gunicorn (web API).
+#
+# Установка:
+#   sudo cp backend/deploy/systemd/listsapp-web.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now listsapp-web
+#
+# Перед первым стартом выполните миграции и сбор статики (см. DEPLOY.md):
+#   cd backend && .venv/bin/python manage.py migrate --noinput
+#   .venv/bin/python manage.py collectstatic --noinput
+#
+# ПРИМЕЧАНИЕ: подставьте свой реальный путь к backend/ и имя пользователя,
+# если они отличаются от указанных ниже.
+
+[Unit]
+Description=ListsApp Gunicorn web (Django REST API)
+After=network.target postgresql.service redis-server.service
+Wants=postgresql.service redis-server.service
+
+[Service]
+Type=simple
+User=viperovm
+Group=viperovm
+WorkingDirectory=/home/viperovm/family_list_mob_app/backend
+EnvironmentFile=/home/viperovm/family_list_mob_app/backend/.env
+ExecStart=/home/viperovm/family_list_mob_app/backend/.venv/bin/gunicorn config.wsgi:application --bind 127.0.0.1:8000 --workers 3 --timeout 60
+Restart=always
+RestartSec=5
+# SIGQUIT — корректное (graceful) завершение воркеров gunicorn.
+KillSignal=SIGQUIT
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

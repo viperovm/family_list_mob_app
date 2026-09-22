@@ -129,6 +129,7 @@ export function ListsHomeScreen() {
                 onDuplicate={() => duplicate.mutate({ id: item.id, mode: 'all' })}
               />
             )}
+            contentContainerStyle={styles.listContent}
             refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
           />
         )}
@@ -139,6 +140,7 @@ export function ListsHomeScreen() {
 
 const styles = StyleSheet.create({
   title: { ...typography.titleLarge, marginBottom: spacing.lg },
+  listContent: { paddingTop: spacing.lg, paddingBottom: spacing.lg },
   card: { marginBottom: spacing.md },
   cardHeader: {
     flexDirection: 'row',

@@ -11,8 +11,8 @@ export function Card({ children, style, ...rest }: ViewProps) {
       style={[
         styles.card,
         {
-          backgroundColor: c.glass,
-          borderColor: c.glassBorder,
+          backgroundColor: c.surface,
+          borderColor: c.border,
           shadowColor: theme.dark ? '#000' : '#1E293B',
         },
         style,
