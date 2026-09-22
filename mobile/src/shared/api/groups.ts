@@ -1,5 +1,5 @@
 import { api } from './client';
-import { Group, GroupMember, Invitation } from '../lib/types';
+import { Group, GroupMember, Invitation, InviteResponse } from '../lib/types';
 
 export const groupsApi = {
   async list(): Promise<Group[]> {
@@ -27,7 +27,7 @@ export const groupsApi = {
     return res.data;
   },
 
-  async invite(id: string, phone: string): Promise<Invitation> {
+  async invite(id: string, phone: string): Promise<InviteResponse> {
     const res = await api.post(`/groups/${id}/invitations/`, { phone });
     return res.data;
   },

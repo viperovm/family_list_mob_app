@@ -176,7 +176,14 @@ def refresh_tokens(refresh: str) -> dict:
         token = RefreshToken(refresh)
     except Exception:
         raise APIError("UNAUTHORIZED", "Недействительный refresh-токен.", status_code=401)
+
+    # Ротация refresh-токена. Сначала помечаем старый токен как отозванный,
+    # затем меняем jti/exp/iat — иначе клиент получит обратно тот же (уже
+    # отозванный) токен и при следующем обновлении будет разлогинен.
     token.blacklist()
+    token.set_jti()
+    token.set_exp()
+    token.set_iat()
     return {"access": str(token.access_token), "refresh": str(token)}
 
 

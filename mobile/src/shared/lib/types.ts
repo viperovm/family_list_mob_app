@@ -40,6 +40,16 @@ export interface Invitation {
   created_at: string;
 }
 
+export interface InviteResponse {
+  id: ID;
+  group_id: ID;
+  invitee_phone: string;
+  status: InvitationStatus;
+  /** Whether the invited phone already belongs to a registered user. */
+  invitee_registered: boolean;
+  push_sent: boolean;
+}
+
 export type ListVisibility = 'private' | 'group' | 'custom';
 export type ListStatus = 'active' | 'archived';
 

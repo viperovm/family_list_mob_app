@@ -20,6 +20,12 @@
           "color": "#2563EB",
           "defaultChannel": "default"
         }
+      ],
+      [
+        "expo-contacts",
+        {
+          "contactsPermission": "Доступ к контактам нужен, чтобы находить близких по имени и показывать, кто вас пригласил."
+        }
       ]
     ],
     "ios": {
@@ -37,7 +43,9 @@
       "package": "com.familylists.app",
       "permissions": [
         "android.permission.READ_PHONE_STATE",
-        "android.permission.POST_NOTIFICATIONS"
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.READ_CONTACTS",
+        "android.permission.WRITE_CONTACTS"
       ],
       "predictiveBackGestureEnabled": false
     },
