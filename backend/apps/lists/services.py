@@ -50,6 +50,18 @@ def _ensure_access(user, lst: List):
         raise APIError("LIST_NOT_MEMBER", "У вас нет доступа к этому списку.", status_code=403)
 
 
+def _notify_list_change(lst: List, actor, title: str, body: str, change_type: str) -> None:
+    from apps.notifications.tasks import send_list_change_push
+
+    send_list_change_push.delay(
+        str(lst.id),
+        str(actor.id),
+        title,
+        body,
+        {"type": change_type, "list_id": str(lst.id), "group_id": str(lst.group.id)},
+    )
+
+
 def _progress(lst: List) -> dict:
     counts = Item.objects.filter(list=lst, deleted_at__isnull=True).aggregate(
         total=Count("id"),
@@ -97,6 +109,7 @@ def _serialize_item(item: Item) -> dict:
         "id": str(item.id),
         "text": item.text,
         "status": item.status,
+        "priority": item.priority,
         "position": item.position,
         "status_changed_at": item.status_changed_at,
         "created_at": item.created_at,
@@ -106,7 +119,7 @@ def _serialize_item(item: Item) -> dict:
 def _items_queryset(lst: List):
     active = list(
         Item.objects.filter(list=lst, deleted_at__isnull=True, status=Item.Status.ACTIVE)
-        .order_by("position", "created_at")
+        .order_by("-priority", "position", "created_at")
     )
     closed = list(
         Item.objects.filter(list=lst, deleted_at__isnull=True)
@@ -173,6 +186,7 @@ def create_list(user, group_id, name, visibility, participant_ids=None) -> dict:
                     raise APIError("VALIDATION_ERROR", "Участник должен состоять в группе.")
                 ListParticipant.objects.create(list=lst, user_id=pid, added_by=user)
 
+    _notify_list_change(lst, user, "Новый список", f"Создан список «{lst.name}»", "list_created")
     return _serialize_list(user, lst)
 
 
@@ -241,6 +255,7 @@ def update_list(user, list_id, name=None, visibility=None, participant_ids=None)
         elif new_visibility != List.Visibility.CUSTOM:
             lst.participants.all().delete()
 
+    _notify_list_change(lst, user, "Доступ к списку", f"Изменён доступ к списку «{lst.name}»", "list_updated")
     return _serialize_list(user, lst)
 
 
@@ -253,6 +268,7 @@ def archive_list(user, list_id) -> dict:
     lst.archived_at = timezone.now()
     lst.archived_by = user
     lst.save(update_fields=["status", "archived_at", "archived_by", "updated_at"])
+    _notify_list_change(lst, user, "Список завершён", f"Список «{lst.name}» завершён", "list_archived")
     return _serialize_list(user, lst)
 
 
@@ -275,7 +291,20 @@ def restore_list(user, list_id) -> dict:
     lst.archived_at = None
     lst.archived_by = None
     lst.save(update_fields=["status", "archived_at", "archived_by", "updated_at"])
+    _notify_list_change(lst, user, "Список восстановлен", f"Список «{lst.name}» восстановлен", "list_restored")
     return _serialize_list(user, lst)
+
+
+def delete_list(user, list_id) -> dict:
+    """Permanently delete an archived list. Only the owner can do this."""
+    lst = _get_list_or_404(list_id)
+    _ensure_access(user, lst)
+    if lst.owner_id != user.id:
+        raise APIError("FORBIDDEN", "Удалить список может только владелец.", status_code=403)
+    if lst.status != List.Status.ARCHIVED:
+        raise APIError("VALIDATION_ERROR", "Удалить можно только архивный список.")
+    lst.delete()
+    return {"id": list_id, "deleted": True}
 
 
 def _make_unique_name(group: Group, base_name: str) -> str:
@@ -367,7 +396,7 @@ def list_items(user, list_id) -> list:
     return [_serialize_item(i) for i in _items_queryset(lst)]
 
 
-def create_item(user, list_id, text) -> dict:
+def create_item(user, list_id, text, priority=False) -> dict:
     lst = _get_list_or_404(list_id)
     _ensure_access(user, lst)
     text = (text or "").strip()
@@ -381,8 +410,10 @@ def create_item(user, list_id, text) -> dict:
         or 0
     )
     item = Item.objects.create(
-        list=lst, text=text, position=max_position + 1, created_by=user, updated_by=user
+        list=lst, text=text, position=max_position + 1, priority=priority,
+        created_by=user, updated_by=user,
     )
+    _notify_list_change(lst, user, "Добавлена позиция", text, "list_item_added")
     return _serialize_item(item)
 
 
@@ -393,7 +424,7 @@ def _get_item_or_404(list_id, item_id) -> Item:
         raise APIError("NOT_FOUND", "Позиция не найдена.", status_code=404)
 
 
-def update_item(user, list_id, item_id, text=None, status=None) -> dict:
+def update_item(user, list_id, item_id, text=None, status=None, priority=None) -> dict:
     lst = _get_list_or_404(list_id)
     _ensure_access(user, lst)
     item = _get_item_or_404(list_id, item_id)
@@ -423,8 +454,12 @@ def update_item(user, list_id, item_id, text=None, status=None) -> dict:
             else:
                 item.position = 0
 
+    if priority is not None:
+        item.priority = bool(priority)
+
     item.updated_by = user
-    item.save(update_fields=["text", "status", "position", "status_changed_at", "updated_by", "updated_at"])
+    item.save(update_fields=["text", "status", "priority", "position", "status_changed_at", "updated_by", "updated_at"])
+    _notify_list_change(lst, user, "Позиция изменена", item.text, "list_item_updated")
     return _serialize_item(item)
 
 

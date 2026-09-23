@@ -32,6 +32,7 @@ export function useGroupMembers(id: string) {
   return useQuery({
     queryKey: queryKeys.members(id),
     queryFn: () => groupsApi.members(id),
+    enabled: !!id,
   });
 }
 

@@ -61,20 +61,25 @@ export const listsApi = {
     return res.data;
   },
 
+  async deleteList(id: string): Promise<{ id: string; deleted: boolean }> {
+    const res = await api.post(`/lists/${id}/delete`);
+    return res.data;
+  },
+
   async duplicate(id: string, mode: 'all' | 'uncompleted'): Promise<ShoppingList> {
     const res = await api.post(`/lists/${id}/duplicate`, { mode });
     return res.data;
   },
 
-  async addItem(listId: string, text: string): Promise<ListItem> {
-    const res = await api.post(`/lists/${listId}/items`, { text });
+  async addItem(listId: string, text: string, priority = false): Promise<ListItem> {
+    const res = await api.post(`/lists/${listId}/items`, { text, priority });
     return res.data;
   },
 
   async updateItem(
     listId: string,
     itemId: string,
-    data: { text?: string; status?: string },
+    data: { text?: string; status?: string; priority?: boolean },
   ): Promise<ListItem> {
     const res = await api.patch(`/lists/${listId}/items/${itemId}`, data);
     return res.data;

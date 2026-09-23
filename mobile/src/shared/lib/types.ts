@@ -92,6 +92,7 @@ export interface ListItem {
   id: ID;
   text: string;
   status: ItemStatus;
+  priority: boolean;
   position: number;
   status_changed_at: string | null;
   created_at: string;

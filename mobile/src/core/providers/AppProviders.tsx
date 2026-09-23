@@ -5,6 +5,7 @@ import { NavigationContainer, DarkTheme, DefaultTheme } from '@react-navigation/
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useTheme, ThemeProvider } from '../../shared/design-system';
+import { useRealtimeSync } from '../../shared/hooks/useRealtimeSync';
 import { RootNavigator } from '../navigation/RootNavigator';
 
 const queryClient = new QueryClient({
@@ -19,6 +20,7 @@ const queryClient = new QueryClient({
 
 function ThemedNavigation() {
   const { theme } = useTheme();
+  useRealtimeSync();
   const navTheme = theme.dark ? DarkTheme : DefaultTheme;
   return (
     <NavigationContainer

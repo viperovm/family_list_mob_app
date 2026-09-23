@@ -73,9 +73,11 @@ function ItemRow({
         style={[
           styles.itemText,
           { color: done || failed ? c.textSecondary : c.textPrimary },
+          item.priority && !done && !failed && styles.itemTextPriority,
           (done || failed) && styles.itemTextClosed,
         ]}
       >
+        {item.priority && !done && !failed ? '★ ' : ''}
         {item.text}
       </Text>
     </Pressable>
@@ -108,12 +110,31 @@ export function ListDetailScreen({ route, navigation }: Props) {
   if (isError || !list) return <ErrorState onRetry={() => refetch()} />;
 
   const activeItems = list.items.filter((i) => i.status === 'active');
-  const closedItems = list.items.filter((i) => i.status !== 'active');
-  const items = [...activeItems, ...closedItems];
+  const failedItems = list.items.filter((i) => i.status === 'failed');
+  const doneItems = list.items.filter((i) => i.status === 'done');
+  const items = [...activeItems, ...failedItems, ...doneItems];
+
+  const finishAndClose = () => {
+    archive.mutate(listId, { onSuccess: () => navigation.goBack() });
+  };
+
+  const offerCloseWhenAllDone = () => {
+    Alert.alert(t('lists.allDoneTitle'), t('lists.allDoneBody'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('lists.finish'), onPress: finishAndClose },
+    ]);
+  };
 
   const onTapItem = (item: ListItem) => {
     const next = item.status === 'active' ? 'done' : 'active';
-    updateItem.mutate({ itemId: item.id, data: { status: next } });
+    updateItem.mutate(
+      { itemId: item.id, data: { status: next } },
+      {
+        onSuccess: () => {
+          if (next === 'done' && list.progress.active === 1) offerCloseWhenAllDone();
+        },
+      },
+    );
   };
 
   const onAdd = () => {
@@ -131,11 +152,11 @@ export function ListDetailScreen({ route, navigation }: Props) {
         t('lists.finishConfirmBody', { count: activeCount }),
         [
           { text: t('common.cancel'), style: 'cancel' },
-          { text: t('lists.finish'), style: 'destructive', onPress: () => archive.mutate(listId) },
+          { text: t('lists.finish'), style: 'destructive', onPress: finishAndClose },
         ],
       );
     } else {
-      archive.mutate(listId);
+      finishAndClose();
     }
   };
 
@@ -159,28 +180,51 @@ export function ListDetailScreen({ route, navigation }: Props) {
     }
   };
 
-  const itemActions = selectedItem
-    ? [
-        {
-          label: selectedItem.status === 'active' ? t('lists.finish') : t('lists.restore'),
-          onPress: () => {
-            onTapItem(selectedItem);
-            setSelectedItem(null);
-          },
-        },
-        {
-          label: 'Удалить',
-          onPress: () => {
-            deleteItem.mutate(selectedItem.id);
-            setSelectedItem(null);
-          },
-        },
-      ]
-    : [];
+  const markStatus = (item: ListItem, status: 'active' | 'done' | 'failed') => {
+    updateItem.mutate({ itemId: item.id, data: { status } });
+    setSelectedItem(null);
+  };
 
-return (
+  const togglePriority = (item: ListItem) => {
+    updateItem.mutate({ itemId: item.id, data: { priority: !item.priority } });
+    setSelectedItem(null);
+  };
+
+  const removeItem = (item: ListItem) => {
+    deleteItem.mutate(item.id);
+    setSelectedItem(null);
+  };
+
+  const itemActions = selectedItem ? buildItemActions(selectedItem) : [];
+
+  function buildItemActions(item: ListItem) {
+    if (item.status === 'active') {
+      return [
+        { label: t('lists.markPurchased'), onPress: () => markStatus(item, 'done') },
+        { label: t('lists.markNotPurchased'), onPress: () => markStatus(item, 'failed') },
+        {
+          label: item.priority ? t('lists.unpriority') : t('lists.priority'),
+          onPress: () => togglePriority(item),
+        },
+        { label: t('lists.delete'), onPress: () => removeItem(item) },
+      ];
+    }
+    return [
+      { label: t('lists.restore'), onPress: () => markStatus(item, 'active') },
+      {
+        label: item.status === 'done' ? t('lists.markNotPurchased') : t('lists.markPurchased'),
+        onPress: () => markStatus(item, item.status === 'done' ? 'failed' : 'done'),
+      },
+      { label: t('lists.delete'), onPress: () => removeItem(item) },
+    ];
+  }
+
+  return (
     <Screen edges={['top']}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
         <View style={[styles.header, { backgroundColor: c.surface }]}>
           <Pressable onPress={() => navigation.goBack()} style={styles.headerBtn} hitSlop={12}>
             <Text style={[styles.headerBtnText, { color: c.primary }]}>←</Text>
@@ -204,7 +248,9 @@ return (
         <FlashList
           data={items}
           keyExtractor={(item) => item.id}
+          style={{ flex: 1 }}
           contentContainerStyle={{ padding: spacing.lg }}
+          keyboardShouldPersistTaps="handled"
           ListEmptyComponent={
             <Text style={[styles.empty, { color: c.textSecondary }]}>
               {t('lists.addItemPlaceholder')}
@@ -343,6 +389,7 @@ const styles = StyleSheet.create({
   },
   checkText: { fontSize: 16, fontWeight: '700' },
   itemText: { ...typography.bodyLarge, flex: 1 },
+  itemTextPriority: { fontWeight: '700' },
   itemTextClosed: { textDecorationLine: 'line-through' },
   empty: { ...typography.bodyMedium, textAlign: 'center', marginTop: spacing.xxl },
   addBar: {

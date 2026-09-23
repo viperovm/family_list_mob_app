@@ -50,6 +50,10 @@ class ListViewSet(viewsets.ViewSet):
         result = services.update_list(request.user, pk, **serializer.validated_data)
         return Response(result)
 
+    @action(detail=True, methods=["post"], url_path="delete")
+    def destroy(self, request, pk=None):
+        return Response(services.delete_list(request.user, pk))
+
     @action(detail=True, methods=["post"])
     def archive(self, request, pk=None):
         return Response(services.archive_list(request.user, pk))
@@ -73,7 +77,10 @@ class ListViewSet(viewsets.ViewSet):
     def add_item(self, request, pk=None):
         serializer = ItemCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        result = services.create_item(request.user, pk, serializer.validated_data["text"])
+        result = services.create_item(
+            request.user, pk, serializer.validated_data["text"],
+            serializer.validated_data.get("priority", False),
+        )
         return Response(result, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=["post"], url_path="items/reorder")

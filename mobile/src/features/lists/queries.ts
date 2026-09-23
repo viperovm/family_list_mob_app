@@ -27,8 +27,10 @@ export function useAddItem(listId: string) {
 export function useUpdateItem(listId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (input: { itemId: string; data: { text?: string; status?: string } }) =>
-      listsApi.updateItem(listId, input.itemId, input.data),
+    mutationFn: (input: {
+      itemId: string;
+      data: { text?: string; status?: string; priority?: boolean };
+    }) => listsApi.updateItem(listId, input.itemId, input.data),
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.list(listId) }),
   });
 }
@@ -71,6 +73,16 @@ export function useRestoreList() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => listsApi.restore(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.lists });
+    },
+  });
+}
+
+export function useDeleteList() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => listsApi.deleteList(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.lists });
     },

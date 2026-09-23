@@ -21,37 +21,31 @@ export async function requestContactsPermission(): Promise<boolean> {
 
 /**
  * Load the full contact book locally. The list is never sent to the server —
- * only explicitly selected numbers are. Pagination is handled for Android.
+ * only explicitly selected numbers are.
+ *
+ * Uses the class-based `Contact.getAllDetails` API: the legacy
+ * `getContactsAsync` entrypoint is deprecated in expo-contacts 57 and throws
+ * at runtime when imported from the package root.
  */
 export async function loadContacts(): Promise<PhoneContact[]> {
+  const fields = [Contacts.ContactField.FULL_NAME, Contacts.ContactField.PHONES] as const;
+  const details = await Contacts.Contact.getAllDetails(fields);
+
   const result: PhoneContact[] = [];
-  const pageSize = 1000;
-  let pageOffset = 0;
 
-  while (true) {
-    const { data, hasNextPage } = await Contacts.getContactsAsync({
-      fields: [Contacts.Fields.Name, Contacts.Fields.PhoneNumbers],
-      pageSize,
-      pageOffset,
-    });
-
-    for (const contact of data) {
-      const phones: string[] = [];
-      for (const p of contact.phoneNumbers ?? []) {
-        if (!p.number) continue;
-        const e164 = normalizePhone(p.number);
-        if (isValidPhone(e164) && !phones.includes(e164)) {
-          phones.push(e164);
-        }
-      }
-      if (phones.length > 0) {
-        const name = (contact.name ?? '').trim();
-        result.push({ id: contact.id ?? phones[0], name: name || phones[0], phones });
+  for (const contact of details) {
+    const phones: string[] = [];
+    for (const p of contact.phones) {
+      if (!p.number) continue;
+      const e164 = normalizePhone(p.number);
+      if (isValidPhone(e164) && !phones.includes(e164)) {
+        phones.push(e164);
       }
     }
-
-    if (!hasNextPage) break;
-    pageOffset += data.length;
+    if (phones.length > 0) {
+      const name = (contact.fullName ?? '').trim();
+      result.push({ id: contact.id, name: name || phones[0], phones });
+    }
   }
 
   return result;

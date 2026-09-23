@@ -23,11 +23,13 @@ class ListDuplicateSerializer(serializers.Serializer):
 
 class ItemCreateSerializer(serializers.Serializer):
     text = serializers.CharField(max_length=300)
+    priority = serializers.BooleanField(required=False, default=False)
 
 
 class ItemUpdateSerializer(serializers.Serializer):
     text = serializers.CharField(max_length=300, required=False)
     status = serializers.ChoiceField(choices=["active", "done", "failed"], required=False)
+    priority = serializers.BooleanField(required=False)
 
 
 class ReorderSerializer(serializers.Serializer):

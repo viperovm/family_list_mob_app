@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { Alert, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { FlashList } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { ListsStackParamList } from '../../core/navigation/types';
-import { useLists, useArchiveList, useRestoreList, useDuplicateList } from './queries';
+import { useLists, useArchiveList, useRestoreList, useDuplicateList, useDeleteList } from './queries';
 import { ShoppingList, ListStatusFilter, ListSection } from '../../shared/lib/types';
 import { useTheme, spacing, typography } from '../../shared/design-system';
 import { Screen, ScreenContent } from '../../shared/ui/Screen';
@@ -25,12 +25,14 @@ function ListCard({
   onArchive,
   onRestore,
   onDuplicate,
+  onDelete,
 }: {
   list: ShoppingList;
   onOpen: () => void;
   onArchive: () => void;
   onRestore: () => void;
   onDuplicate: () => void;
+  onDelete: () => void;
 }) {
   const { t } = useTranslation();
   const { theme } = useTheme();
@@ -59,6 +61,9 @@ function ListCard({
         )}
         <Button title={t('lists.duplicate')} variant="secondary" onPress={onDuplicate} style={styles.flexBtn} />
       </View>
+      {isArchived && (
+        <Button title={t('lists.delete')} variant="danger" onPress={onDelete} style={styles.deleteBtn} />
+      )}
       <Button title={t('groups.open')} variant="ghost" onPress={onOpen} style={styles.openBtn} />
     </Card>
   );
@@ -70,7 +75,7 @@ export function ListsHomeScreen() {
   const c = theme.colors;
   const navigation = useNavigation<Nav>();
 
-  const [section, setSection] = useState<ListSection>('all');
+  const [section, setSection] = useState<ListSection>('shared');
   const [status, setStatus] = useState<ListStatusFilter>('active');
   const [groupId] = useState<string | undefined>(undefined);
 
@@ -83,6 +88,14 @@ export function ListsHomeScreen() {
   const archive = useArchiveList();
   const restore = useRestoreList();
   const duplicate = useDuplicateList();
+  const deleteList = useDeleteList();
+
+  const confirmDelete = (list: ShoppingList) => {
+    Alert.alert(t('lists.deleteListConfirmTitle'), t('lists.deleteListConfirmBody'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('lists.delete'), style: 'destructive', onPress: () => deleteList.mutate(list.id) },
+    ]);
+  };
 
   if (isLoading) return <LoadingState />;
 
@@ -127,12 +140,19 @@ export function ListsHomeScreen() {
                 onArchive={() => archive.mutate(item.id)}
                 onRestore={() => restore.mutate(item.id)}
                 onDuplicate={() => duplicate.mutate({ id: item.id, mode: 'all' })}
+                onDelete={() => confirmDelete(item)}
               />
             )}
             contentContainerStyle={styles.listContent}
             refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
           />
         )}
+
+        <Button
+          title={t('lists.create')}
+          onPress={() => navigation.navigate('CreateList')}
+          style={styles.createBtn}
+        />
       </ScreenContent>
     </Screen>
   );
@@ -153,4 +173,6 @@ const styles = StyleSheet.create({
   cardActions: { flexDirection: 'row', gap: spacing.sm },
   flexBtn: { flex: 1 },
   openBtn: { marginTop: spacing.sm },
+  deleteBtn: { marginTop: spacing.sm },
+  createBtn: { marginTop: spacing.lg },
 });

@@ -54,3 +54,33 @@ def send_pending_registration_push(user_id: str) -> None:
             "deep_link": "app://invitations",
         },
     )
+
+
+@shared_task
+def send_list_change_push(list_id: str, actor_id: str, title: str, body: str, data: dict) -> None:
+    """Notify everyone who can see a list (except the actor) about a change."""
+    List = apps.get_model("lists", "List")
+    ListParticipant = apps.get_model("lists", "ListParticipant")
+    Membership = apps.get_model("groups", "Membership")
+    User = get_user_model()
+
+    lst = List.objects.select_related("group").filter(id=list_id).first()
+    if lst is None:
+        return
+
+    if lst.visibility == List.Visibility.PRIVATE:
+        recipient_ids = [lst.owner_id]
+    elif lst.visibility == List.Visibility.CUSTOM:
+        recipient_ids = list(
+            ListParticipant.objects.filter(list=lst).values_list("user_id", flat=True)
+        ) + [lst.owner_id]
+    else:
+        recipient_ids = list(
+            Membership.objects.filter(group=lst.group).values_list("user_id", flat=True)
+        )
+
+    recipients = {uid for uid in recipient_ids if str(uid) != str(actor_id)}
+    for user_id in recipients:
+        user = User.objects.filter(id=user_id).first()
+        if user is not None:
+            send_push_to_user(user, title, body, data)
